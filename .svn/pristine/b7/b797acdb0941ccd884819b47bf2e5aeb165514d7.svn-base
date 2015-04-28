@@ -1,0 +1,112 @@
+package com.fivetrue.lovepic.ui;
+
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+
+import com.facebook.Session;
+import com.facebook.widget.UserSettingsFragment;
+import com.fivetrue.lovepic.LovePicApp;
+import com.fivetrue.lovepic.R;
+import com.fivetrue.lovepic.billing.IAPHelper;
+import com.fivetrue.lovepic.billing.PurchasedResult;
+
+import java.util.ArrayList;
+
+public class LoadingActivity extends FragmentActivity {
+
+    private static class LoadingStep{
+        public FragmentActivity activity = null;
+        public Class<?> nextClass = null;
+        public Intent nextIntent = null;
+        public BaseLoadingAsyncTask nextTask = null;
+        public Object obj = null;
+    }
+
+    private UserSettingsFragment mUserSettingFragment = null;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+        mUserSettingFragment = new UserSettingsFragment();
+        getSupportFragmentManager().beginTransaction().add(R.id.layout_anchor, mUserSettingFragment, "user").commit();
+        startLoading();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        IAPHelper.unbindBillingService(this);
+    }
+
+    private void startLoading() {
+//        LoadingStep step = new LoadingStep();
+//        step.activity = this;
+//        new InitAsyncTask().execute(step);
+    }
+
+    private static class LoginCheckAsyncTask extends  BaseLoadingAsyncTask{
+
+        @Override
+        protected LoadingStep doInBackground(LoadingStep... params) {
+            LoadingStep step = params[0];
+            if(step != null){
+                Session.getActiveSession();
+            }
+            return step;
+        }
+    }
+
+    private static class PurchasesCheckAsyncTask extends BaseLoadingAsyncTask {
+
+        @Override
+        protected LoadingStep doInBackground(LoadingStep... params) {
+
+            LoadingStep step = params[0];
+            if(step != null && step.activity != null){
+                ArrayList<PurchasedResult> purchasedResults = IAPHelper.getPurchasesList(step.activity);
+                //Todo Purchase process
+            }
+            return step;
+        }
+    }
+
+    private static class InitAsyncTask extends BaseLoadingAsyncTask{
+
+        @Override
+        protected LoadingStep doInBackground(LoadingStep... params) {
+            LoadingStep step = params[0];
+            if(step != null){
+                IAPHelper.bindBillingService(step.activity);
+                LovePicApp.init(step.activity.getApplication());
+                step.nextTask = new LoginCheckAsyncTask();
+            }
+            return step;
+        }
+    }
+
+    private abstract static class BaseLoadingAsyncTask extends AsyncTask<LoadingStep, Void, LoadingStep>{
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(LoadingStep step) {
+            super.onPostExecute(step);
+            if(step != null){
+                if(step.nextIntent != null){
+                    step.activity.startActivity(step.nextIntent);
+                    step.activity.finish();
+                }else if(step.nextTask != null){
+                    step.nextTask.execute(step);
+                }
+            }else{
+                step.activity.startActivity(new Intent(step.activity, MainActivity.class));
+                step.activity.finish();
+            }
+        }
+    }
+}

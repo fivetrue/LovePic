@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- From: file:/Users/kwonojin/private/LovePic/commonSdk/src/main/res/values/strings.xml -->
+    <eat-comment/>
+    <string-array name="subway_line_code">
+        <item name="line_1">1</item>
+        <item name="line_2">2</item>
+        <item name="line_3">3</item>
+        <item name="line_4">4</item>
+        <item name="line_5">5</item>
+        <item name="line_6">6</item>
+        <item name="line_7">7</item>
+        <item name="line_8">8</item>
+        <item name="line_9">9</item>
+        <item name="incheon_line_1">I</item>
+        <item name="kyeong">K</item>
+        <item name="bundang">B</item>
+        <item name="jungang">J</item>
+        <item name="airtrain">A</item>
+        <item name="gyengchun">G</item>
+        <item name="sbundang">S</item>
+        <item name="suin">SU</item>
+    </string-array>
+    <string-array name="subway_line_info">
+        <item name="line_1">1호선</item>
+        <item name="line_2">2호선</item>
+        <item name="line_3">3호선</item>
+        <item name="line_4">4호선</item>
+        <item name="line_5">5호선</item>
+        <item name="line_6">6호선</item>
+        <item name="line_7">7호선</item>
+        <item name="line_8">8호선</item>
+        <item name="line_9">9호선</item>
+        <item name="incheon_line_1">인천1호선</item>
+        <item name="kyeong">경의선</item>
+        <item name="bundang">분당선</item>
+        <item name="jungang">중앙선</item>
+        <item name="airtrain">공항철도</item>
+        <item name="gyengchun">경춘선</item>
+        <item name="sbundang">신분당선</item>
+        <item name="suin">수인선</item>
+    </string-array>
+    <string name="api_google_key">AIzaSyApB7hK17IHqtmeMMa85st5M0tGohS2J-c</string>
+    <string name="api_map_key">AIzaSyDBd9BYtE13_5X0nfbOzqhwqA4OfPbX6_M</string>
+</resources>

@@ -1,0 +1,212 @@
+package com.fivetrue.lovepic.ui;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageLoader;
+import com.fivetrue.lovepic.R;
+import com.fivetrue.lovepic.fragment.CubePictureFragment;
+import com.fivetrue.lovepic.fragment.adapter.MyFragmentPagerAdapter;
+import com.fivetrue.lovepic.view.FragmentViewPager;
+import com.fivetrue.network.VolleyInstance;
+
+
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.ViewPager;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.util.FloatMath;
+import android.view.MotionEvent;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+
+
+public class MainActivity extends FragmentActivity implements SensorEventListener{
+
+	private static final int VIEW_PAGER_ID = 0x41641101;
+	private Sensor mGyroSensor = null;
+	private Sensor mGravitySensor = null;
+	
+	private SensorManager mSensorManger = null;
+	
+	private ViewPager mViewPager = null;
+	private MyFragmentPagerAdapter mPagerAdapter = null;
+	private List<Fragment> mFragmentList = null;
+	
+	
+	
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        VolleyInstance.init(this);
+        mSensorManger = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        mGyroSensor = mSensorManger.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        mGravitySensor = mSensorManger.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        initLayout();
+        
+    }
+    
+    private void initLayout(){
+    	setContentView(R.layout.activity_main);
+    	mViewPager = new FragmentViewPager(this);
+    	mViewPager.setId(VIEW_PAGER_ID);
+    	mFragmentList = new ArrayList<Fragment>();
+    	final CubePictureFragment f = new CubePictureFragment();
+    	final Bitmap[] bitmap = new Bitmap[f.getCube().getNumOfFace()];
+    	for(int i = 0 ; i < f.getCube().getNumOfFace(); i++){
+    		
+    		final int index = i;
+    		VolleyInstance.getImageLoader().get("http://jimg.soribada.com/Jacket/Full/K/D/0/0/3/KD003209" + i + ".jpg", new ImageLoader.ImageListener() {
+				
+				@Override
+				public void onErrorResponse(VolleyError error) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				@Override
+				public void onResponse(ImageLoader.ImageContainer response, boolean isImmediate) {
+					// TODO Auto-generated method stub
+					if(response != null && response.getBitmap() != null && !response.getBitmap().isRecycled()){
+						bitmap[index] = response.getBitmap();
+						if(index == f.getCube().getNumOfFace() - 1){
+							f.setCubePictrues(bitmap);
+							mFragmentList.add(f);
+							mPagerAdapter.notifyDataSetChanged();
+						}
+					}
+				}
+			});
+    	}
+    	mPagerAdapter = new MyFragmentPagerAdapter(getSupportFragmentManager(), mFragmentList);
+    	mViewPager.setAdapter(mPagerAdapter);
+    	((ViewGroup)findViewById(R.id.layout_anchor)).addView(mViewPager, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+    	
+    	
+    }
+
+    @Override
+    protected void onStart() {
+    	// TODO Auto-generated method stub
+    	super.onStart();
+    	if(mSensorManger != null){
+    		if(mGyroSensor != null){
+    			mSensorManger.registerListener(this, mGyroSensor, SensorManager.SENSOR_DELAY_GAME);
+    		}
+    		if(mGravitySensor != null){
+    			mSensorManger.registerListener(this, mGravitySensor, SensorManager.SENSOR_DELAY_GAME);
+    		}
+    	}
+    }
+    
+    @Override
+    protected void onStop() {
+    	// TODO Auto-generated method stub
+    	super.onStop();
+    	if(mSensorManger != null){
+    		mSensorManger.unregisterListener(this);
+    	}
+    }
+    
+
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		// TODO Auto-generated method stub
+		synchronized (this) {
+			if(mFragmentList != null && mFragmentList.size() > 0){
+				for(Fragment f : mFragmentList){
+					if(f instanceof CubePictureFragment){
+						((CubePictureFragment)f).onSensorChanged(event);
+					}
+				}
+			}
+		}
+	}
+
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	boolean isTouch = false;
+	
+	float x = 0;
+	float y = 0;
+	private final int DRAG = 0x01;
+	private final int ZOOM = 0x02;
+	private final int NONE = 0x03;
+	private int MODE = NONE;
+	float oldDist = 0;
+	
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		// TODO Auto-generated method stub
+		if(event != null ){//&& mOpenGlRenderer != null){
+			
+			
+			switch(event.getAction() & MotionEvent.ACTION_MASK){
+			case MotionEvent.ACTION_DOWN :
+//				isTouch = true;
+//				x = event.getX();
+//				y = event.getY();
+				MODE = DRAG;
+				break;
+				
+			case MotionEvent.ACTION_POINTER_DOWN :
+			
+				oldDist = spacing(event);
+				if(oldDist > 10f){
+					MODE = ZOOM;
+				}
+				break;
+				
+			case MotionEvent.ACTION_MOVE:
+				
+				if(MODE == DRAG){
+					
+				}else if(MODE == ZOOM){
+					float newDist = spacing(event);
+					if(newDist > 10f){
+						System.out.println("ojkwon : newDist = " + newDist);
+						System.out.println("ojkwon : oldDist = " + oldDist);
+//						for(Fragment f : mFragmentList){
+//							if(f instanceof CubePictureFragment){
+//								((CubePictureFragment)f).pinchEvent((newDist - oldDist) * 0.01f);
+//							}
+//						}
+					}
+				}
+				break;
+			case MotionEvent.ACTION_UP :
+			case MotionEvent.ACTION_POINTER_UP :
+			case MotionEvent.ACTION_CANCEL:
+				MODE = NONE;
+				isTouch = false;
+				break;
+			}
+		}
+		return false;
+	}
+	
+	private float spacing(MotionEvent event){
+		if(event != null){
+			float x = event.getX(0) - event.getX(1);
+			float y = event.getY(0) - event.getY(1);
+			return FloatMath.sqrt(x*x + y*y);
+		}
+		return 0;
+	}
+	
+	private synchronized void setCubeBitmap(Bitmap bitmap){
+		
+	} 
+}
